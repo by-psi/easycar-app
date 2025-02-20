@@ -40,7 +40,7 @@ export default function Ride(props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFF',
   },
   name: {
     fontSize: 17,
@@ -51,8 +51,8 @@ const styles = StyleSheet.create({
     color: "#8A8A8A"
   },
   car: {
-    width: 20,
-    height: 20,
+    width: 30,
+    height: 30,
     margin: 3
   },
   containerName: {
