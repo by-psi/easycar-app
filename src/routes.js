@@ -41,7 +41,9 @@ export default function Routes() {
             headerTitleAlign: "center"
           }} 
         />
-        <Stack.Screen name="ride-detail" component={RideDetail}
+        <Stack.Screen 
+          name="ride-detail" 
+          component={RideDetail}
           options={{
             headerTitle: "Detalhes da Viagem",
             headerShadowVisible: true,

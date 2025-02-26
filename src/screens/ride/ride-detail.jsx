@@ -2,18 +2,81 @@
  * src/screens/ride/ride-details.jsx
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import MyButton from "../../components/btn/btn.jsx";
 import MapView, { Marker, PROVIDER_DEFAULT } from "react-native-maps";
 import icons from "../../constants/icons.js";
 
 export default function RideDetail(props) {
+    const rideId = props.route.params.rideId;
+    const userId = props.route.params.userId;
+    const [title, setTitle] = useState("");
+    const [ride, setRide] = useState({});
+   
+    async function RequestRideDetail() {
 
-    const [myLocation, setMyLocation] = useState({
-        latitude: 20,
-        longitude: 20
-    });
+        // Get (buscar), Post (inserir), Put (atualizar), Delete (remover)
+
+        // const response = {
+        //     ride_id: 2,
+        //     passenger_user_id: 2,
+        //     passenger_name: "Paulo César",
+        //     passenger_phone: "(31) 99999-9999",
+        //     pickup_address: "Rua dos Astecas, 2917 - Santa Mônica",
+        //     pickup_latitude: "-19.8297025",
+        //     pickup_longitude: "-43.9792047",
+        //     pickup_date: "2025-02-16",
+        //     dropoff_address: "R. Padre Pedro Pinto, 933 - Venda Nova",
+        //     status: "P",
+        //     driver_user_id: 1,
+        //     driver_name: null,
+        //     driver_phone: null,
+        // }
+
+        const response = {
+            ride_id: 2,
+            passenger_user_id: 2,
+            passenger_name: "Paulo César",
+            passenger_phone: "(31) 99999-9999",
+            pickup_address: "Rua dos Astecas, 2917 - Santa Mônica",
+            pickup_latitude: "-19.8297025",
+            pickup_longitude: "-43.9792047",
+            pickup_date: "2025-02-16",
+            dropoff_address: "R. Padre Pedro Pinto, 933 - Venda Nova",
+            status: "A",
+            driver_user_id: 1,
+            driver_name: "Ezequias Matins",
+            driver_phone: "(31) 98410-7540",
+        }
+
+        if (response.passenger_name) {
+            setTitle(response.passenger_name + " - " + response.passenger_phone);
+            setRide(response);
+        }
+    }
+
+    async function AcceptRide(){
+        const json = {
+            passenger_user_id: userId,
+            ride_id: rideId
+        }
+        console.log("Aceitar", json)
+        props.navigation.goBack();
+    }
+
+    async function CancelRide(){
+        const json = {
+            driver_user_id: userId,
+            ride_id: rideId
+        }
+        console.log("Cancelar", json)
+        props.navigation.goBack();
+    }
+
+    useEffect(()=>{
+        RequestRideDetail();
+    }, [])
 
     return (
         <View style={styles.container}>
@@ -21,19 +84,19 @@ export default function RideDetail(props) {
                 style={styles.map}
                 provider={PROVIDER_DEFAULT}
                 initialRegion={{
-                    latitude: -23.561747,
-                    longitude: -46.656244,
+                    latitude: Number(ride.pickup_latitude), 
+                    longitude: Number(ride.pickup_longitude),
                     latitudeDelta: 0.004,
                     longitudeDelta: 0.004
                 }}
             >
                 <Marker 
                     coordinate={{
-                        latitude: -23.561747,
-                        longitude: -46.656244
+                        latitude: Number(ride.pickup_latitude), 
+                        longitude: Number(ride.pickup_longitude),
                     }}
-                    title="Heber Stein Mazutti"
-                    description="Av. Paulista, 1500"
+                    title={ride.passenger_name}
+                    description={ride.pickup_address}
                     image={icons.location}
                     style={styles.marker}
                 />
@@ -41,18 +104,40 @@ export default function RideDetail(props) {
 
             <View style={styles.footer}>
                 <View style={styles.footerText}>
-                    <Text>Encontre a sua carona</Text>
+                    <Text style={{fontWeight: "bold"}}>{title}</Text>
                 </View>
                 <View style={styles.footerFields}>
-                    <Text>Origem</Text>
-                    <TextInput style={styles.input} />
+                    <Text style={{marginBottom: 5}}>Origem</Text>
+                    <TextInput 
+                        style={styles.input} 
+                        value={ride.pickup_address}
+                        editable={false}
+                    />
                 </View>
                 <View style={styles.footerFields}>
-                    <Text>Destino</Text>
-                    <TextInput style={styles.input} />
+                    <Text style={{marginBottom: 5}}>Destino</Text>
+                    <TextInput 
+                        style={styles.input} 
+                        value={ride.dropoff_address}
+                        editable={false}
+                    />
                 </View>
             </View>
-            <MyButton text="ACEITAR" theme="yellow" />
+            { ride.status === "P" && 
+                <MyButton 
+                text="ACEITAR" 
+                theme="default" 
+                onClick={AcceptRide} 
+                /> 
+            }
+            { ride.status === "A" && 
+                <MyButton 
+                text="CANCELAR" 
+                theme="red" 
+                onClick={CancelRide} 
+                /> 
+            }
+
         </View>
     )
 }
@@ -81,7 +166,8 @@ const styles = StyleSheet.create({
         marginTop: 15
     },
     input: {
-        backgroundColor: "#FFF",
+        color: "#000",
+        backgroundColor: "#FFCC",
         borderWidth: 1,
         borderColor: "#CCC",
         padding: 10

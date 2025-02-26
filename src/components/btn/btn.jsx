@@ -6,8 +6,13 @@ import { StyleSheet, TouchableOpacity, Text } from "react-native";
 
 export default function MyButton(props) {
   return (
-    <TouchableOpacity style={props.theme === "yellow" ? styles.btnYellow : styles.btnRed}>
-      <Text style={props.theme === "yellow" ? styles.textDark : styles.textLight}>{props.text}</Text>
+    <TouchableOpacity 
+      style={props.theme === "red" ? styles.btnRed : styles.btnYellow}
+      onPress={()=>props.onClick()}
+    >
+      <Text style={props.theme === "red" ? styles.textLight : styles.textDark}>
+        {props.text}
+      </Text>
     </TouchableOpacity> 
   )
 }

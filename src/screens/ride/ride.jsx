@@ -5,24 +5,38 @@
 import { StyleSheet, FlatList, Image, Text, TouchableOpacity, View } from 'react-native';
 import { json_rides } from '../../constants/dados';
 import icons from '../../constants/icons.js';
+import { useEffect, useState } from 'react';
 
 export default function Ride(props) {
+  const userId = 2; // CourierID
+  const [rides, setRides] = useState([]);
 
-  function ClickRide(id) {
-    console.log("Ride=" + id);
-    props.navigation.navigate("ride-detail");
+  function ClickRide(id, passenger_id) {
+    props.navigation.navigate("ride-detail", {
+      rideId: id,
+      userId: passenger_id,
+    });
   }
+
+  async function RequestRides(){
+    // Acessar a API para buscar e listar as caronas...
+    setRides(json_rides);
+  }
+
+  useEffect(()=>{
+    RequestRides();
+  }, [])
 
   return (
     <View style={styles.container}>
       <FlatList
-        data={json_rides}
+        data={rides}
         keyExtractor={(ride) => ride.ride_id}
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => {
           return (
             <TouchableOpacity style={styles.ride}
-              onPress={() => ClickRide(item.ride_id)}>
+              onPress={() => ClickRide(item.ride_id, item.passenger_user_id)}>
               <View style={styles.containerName}>
                 <Image source={icons.car} style={styles.car} />
                 <Text style={styles.name}>{item.passenger_name}</Text>
