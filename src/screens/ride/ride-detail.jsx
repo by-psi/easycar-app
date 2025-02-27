@@ -7,71 +7,58 @@ import { StyleSheet, Text, TextInput, View } from "react-native";
 import MyButton from "../../components/btn/btn.jsx";
 import MapView, { Marker, PROVIDER_DEFAULT } from "react-native-maps";
 import icons from "../../constants/icons.js";
+import { api, handleError } from "../../constants/api.js";
 
 export default function RideDetail(props) {
     const rideId = props.route.params.rideId;
     const userId = props.route.params.userId;
+
+    console.log(rideId, userId);
+    
     const [title, setTitle] = useState("");
     const [ride, setRide] = useState({});
    
     async function RequestRideDetail() {
-
-        // Get (buscar), Post (inserir), Put (atualizar), Delete (remover)
-
-        // const response = {
-        //     ride_id: 2,
-        //     passenger_user_id: 2,
-        //     passenger_name: "Paulo César",
-        //     passenger_phone: "(31) 99999-9999",
-        //     pickup_address: "Rua dos Astecas, 2917 - Santa Mônica",
-        //     pickup_latitude: "-19.8297025",
-        //     pickup_longitude: "-43.9792047",
-        //     pickup_date: "2025-02-16",
-        //     dropoff_address: "R. Padre Pedro Pinto, 933 - Venda Nova",
-        //     status: "P",
-        //     driver_user_id: 1,
-        //     driver_name: null,
-        //     driver_phone: null,
-        // }
-
-        const response = {
-            ride_id: 2,
-            passenger_user_id: 2,
-            passenger_name: "Paulo César",
-            passenger_phone: "(31) 99999-9999",
-            pickup_address: "Rua dos Astecas, 2917 - Santa Mônica",
-            pickup_latitude: "-19.8297025",
-            pickup_longitude: "-43.9792047",
-            pickup_date: "2025-02-16",
-            dropoff_address: "R. Padre Pedro Pinto, 933 - Venda Nova",
-            status: "A",
-            driver_user_id: 1,
-            driver_name: "Ezequias Matins",
-            driver_phone: "(31) 98410-7540",
-        }
-
-        if (response.passenger_name) {
-            setTitle(response.passenger_name + " - " + response.passenger_phone);
-            setRide(response);
-        }
+        try {
+            const response = await api.get(`/rides/details/${rideId}`);
+            if (response.data) {
+                setRide(response.data);
+                setTitle(response.data.passenger_name + " - " + response.data.passenger_phone);
+            }
+          } catch (error) {
+            handleError(error);
+            props.navigation.goBack();
+          }
     }
 
-    async function AcceptRide(){
+    async function AcceptRide() {
         const json = {
-            passenger_user_id: userId,
-            ride_id: rideId
+            driver_user_id: userId,
         }
-        console.log("Aceitar", json)
-        props.navigation.goBack();
+        try {
+            const response = await api.put(`/rides/accept/${rideId}`, json);
+            if (response.data) {
+                props.navigation.goBack();
+            }
+        } catch (error) {
+            handleError(error);
+            props.navigation.goBack();
+        }
     }
 
     async function CancelRide(){
         const json = {
             driver_user_id: userId,
-            ride_id: rideId
         }
-        console.log("Cancelar", json)
-        props.navigation.goBack();
+        try {
+            const response = await api.put(`/rides/cancel/${rideId}`, json);
+            if (response.data) {
+                props.navigation.goBack();
+            }
+          } catch (error) {
+            handleError(error);
+            props.navigation.goBack();
+        }
     }
 
     useEffect(()=>{
@@ -123,18 +110,20 @@ export default function RideDetail(props) {
                     />
                 </View>
             </View>
+
             { ride.status === "P" && 
                 <MyButton 
-                text="ACEITAR" 
-                theme="default" 
-                onClick={AcceptRide} 
+                    text="ACEITAR" 
+                    theme="default" 
+                    onClick={AcceptRide} 
                 /> 
             }
+
             { ride.status === "A" && 
                 <MyButton 
-                text="CANCELAR" 
-                theme="red" 
-                onClick={CancelRide} 
+                    text="CANCELAR" 
+                    theme="red" 
+                    onClick={CancelRide} 
                 /> 
             }
 
@@ -158,7 +147,9 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFF",
     },
     footerFields: {
-        margin: 15
+        marginLeft: 15,
+        marginRight: 15,
+        marginBottom: 10
     },
     footerText: {
         alignItems: "center",

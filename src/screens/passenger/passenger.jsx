@@ -12,6 +12,7 @@ import {
   requestForegroundPermissionsAsync,
   reverseGeocodeAsync
 } from 'expo-location';
+import { api, handleError } from '../../constants/api';
 
 export default function Passenger(props) {
   const [myLocation, setMyLocation] = useState({}); // latitude: -19.827144, longitude: -43.983097
@@ -21,46 +22,25 @@ export default function Passenger(props) {
   const [status, setStatus] = useState("");
   const [rideId, setRideId] = useState(0);
   const [driverName, setDriverName] = useState("");
-  const userId = 1; // DeliveryID
+  const userId = 3; // (passageiro) -> ColetaID
 
   async function RequestRideFromUser() {
-    // Acessa dados na API..
-
-    // const response = {}; // status ""
-
-    // const response = {
-    //   ride_id: 1,
-    //   passenger_user_id: 1,
-    //   passenger_name: "João Silva",
-    //   passenger_phone: "(31) 99999-9999",
-    //   pickup_address: "Av. Álvaro Camargos, 2053 São João Batista",
-    //   pickup_date: "2025-02-17",
-    //   pickup_latitude: "-19.82727124903014", 
-    //   pickup_longitude: "-43.96676278687116",
-    //   dropoff_address: "Rua Alcides Lins, 320 Venda Nova",
-    //   status: "P", // Pendente
-    //   driver_user_id: null,
-    //   driver_name: null,
-    //   driver_phone: null
-    // };
-
-    const response = {
-      ride_id: 1,
-      passenger_user_id: 1,
-      passenger_name: "João Silva",
-      passenger_phone: "(31) 99999-9999",
-      pickup_address: "Av. Álvaro Camargos, 2053 São João Batista",
-      pickup_date: "2025-02-17",
-      pickup_latitude: "-19.82727124903014", 
-      pickup_longitude: "-43.96676278687116",
-      dropoff_address: "Rua Alcides Lins, 320 Venda Nova",
-      status: "A", // Aceito
-      driver_user_id: 1,
-      driver_name: "Ezequias Martins",
-      driver_phone: "(31) 98410-7540"
-    };
-    
-    return response;
+    try {
+      const response = await api.get("/rides/list", {
+        params: {
+          passenger_user_id: userId,
+          pickup_date: new Date().toISOString("pt-BR", { timeZone: "America/Sao_Paulo" }).substring(0, 10),
+          status_not: "F"
+        }
+      });
+      if (response.data[0])
+        return response.data[0]
+      else 
+        return {};
+    } catch (error) {
+      handleError(error);
+      props.navigation.goBack();
+    }
   }
 
   async function RequestPermissionAndGetLocation() {
@@ -121,33 +101,46 @@ export default function Passenger(props) {
   }
 
   async function AskForRide() {
-    const json = {
-      passenger_id: userId,
-      pickup_address: pickupAddress,
-      dropoff_address: dropOffAddress, 
-      pickup_latitude: myLocation.latitude,
-      pickup_longitude: myLocation.longitude
+    try {
+      const json = {
+        passenger_user_id: userId,
+        pickup_address: pickupAddress,
+        pickup_latitude: myLocation.latitude,
+        pickup_longitude: myLocation.longitude,
+        dropoff_address: dropOffAddress
+      }
+      const response = await api.post("/rides/insert", json);
+      if (response.data)
+        props.navigation.goBack();
+    } catch (error) {
+      handleError(error);
+      props.navigation.goBack();
     }
-    console.log("Fazer post para o servidor", json)
-    props.navigation.goBack();
   }
 
   async function CancelRide() {
-    const json = {
-      passenger_user_id: userId,
-      ride_id: rideId
+    try {
+      const response = await api.delete(`/rides/delete/${rideId}`);
+      if (response.data)
+        props.navigation.goBack();
+    } catch (error) {
+      handleError(error);
+      props.navigation.goBack();
     }
-    console.log("Cancelar carona", json);
-    props.navigation.goBack();
   }
 
   async function FinishRide() {
     const json = {
       passenger_user_id: userId,
-      ride_id: rideId
     }
-    console.log("Finalizar carona", json);   
-    props.navigation.goBack();
+    try {
+      const response = await api.put(`/rides/finish/${rideId}`, json);
+      if (response.data)
+        props.navigation.goBack();
+    } catch (error) {
+      handleError(error);
+      props.navigation.goBack();
+    }
   }
 
   useEffect(()=>{
