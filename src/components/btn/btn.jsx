@@ -18,10 +18,7 @@ export default function MyButton(props) {
   }
 
   return (
-      <TouchableOpacity
-          style={btnStyle}
-          onPress={()=>props.onClick()}
-      >
+      <TouchableOpacity style={btnStyle} onPress={()=>props.onClick()}>
           <Text style={textStyle}>
               {props.text}
           </Text>
